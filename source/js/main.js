@@ -1,26 +1,97 @@
-//= require "ratelimiter"
-
-var responseContainer;
-
 (function($) {
-    $.fn.gluttony = function(rawSettings, template) {
+    var RateLimiter = {
+	throttle: function(rawParams, func) {
+	    var defaults = {delay: 200, no_trailing: false};
+	    var params = $.extend(defaults, rawParams);    
+	    var timer;
+	    // If no_trailing false or unspecified
+	    if (!params.no_trailing) {
+		return function() {
+		    var args = arguments;
+		    debounce({delay: params.delay, at_begin: true}, function() {
+			func.apply(this, args);
+		    })();
+		    
+		    if (!timer) {
+			timer = window.setTimeout(function() {
+			    timer = null;
+			    func.apply(this, args);
+			}.bind(this), params.delay);
+		    }
+		}
+	    }
+
+	    // If no_trailing set to true
+	    return function() {
+		var args = arguments;
+		if (!timer) {
+		    func.apply(this, args);
+		    timer = window.setTimeout(function() {
+			timer = null;
+		    }.bind(this), params.delay);
+		}
+	    }
+	},
+
+	debounce: function(rawParams, func) {
+	    var defaults = {delay: 200, at_begin: false};
+	    var params = $.extend(defaults, rawParams);
+	    var timer;
+	    if (!at_begin) {
+		return function() {
+		    window.clearTimeout(timer);
+		    var args = arguments;
+		    timer = window.setTimeout(function() {
+			func.apply(this, args);
+		    }.bind(this), params.delay);
+		};
+	    }
+
+	    return function() {
+		if (!timer) {
+		    func.apply(this, arguments);
+		    timer = window.setTimeout(function() {
+			timer = null;
+		    });
+		} else {
+		    window.clearTimeout(timer);
+		}
+	    };
+	}
+    }
+
+
+    $.fn.gluttony = function(settings, template) {
 
 	var nodeBank = [];
-	
-	function determineAPI(endpoint) {
-	    if (/api\.flickr\.com/.test(endpoint)) {
-		return 'flickr';
-	    } else if (/googleapis\.com\/youtube/.test(endpoint)) {
-		return 'youtube';
-	    } else if (/api\.github\.com/.test(endpoint)) {
-		return 'github';
-	    } else if (/api\.tumblr\.com/.test(endpoint)) {
-		return 'tumblr';
-	    } else if (/reddit\.com.*\.json/.test(endpoint)) {
-		return 'reddit';
+
+	function followKeyPath(hash, keyPath) {
+	    keys = keyPath.split('.');
+	    result = hash;
+	    for (var i = 0; i < keys.length; i++) {
+		result = result[keys[i]];
 	    }
-	    else {
-		throw 'Invalid/unsupported endpoint';
+	    return result;
+	}
+	
+	function paginate(param, children) {
+	    if (typeof param == 'string') {
+		if (ajaxSettings.data[param]) {
+		    ajaxSettings[param]++;
+		} else {
+		    ajaxSettings.data[param] = 2;
+		}
+	    } else if (typeof param == 'object') {
+		var paramName = Object.keys(param);
+		if (paramName.length != 1) {
+		    throw 'Param object must have exactly 1 key';
+		}
+
+		// Get param value from last child using given key path specified in param object
+		paramValue = followKeyPath(children[children.length - 1], param[paramName[0]]);
+
+		// Add key value pair to ajax parameters
+		ajaxSettings.data[paramName[0]] = paramValue;
 	    }
 	}
 
@@ -76,147 +147,30 @@ var responseContainer;
 	    lastScroll = scrollPosition;
 	});
 
-	var defaultSettings = {
-	    endpoint: 'https://api.flickr.com/services/rest/?method=flickr.photos.search',
-	    keyPath: 'photos.photo'
-	};
-	
-	var settings = $.extend(defaultSettings, rawSettings);
-	
-	var api = determineAPI(settings.endpoint);
-
-	var defaultParams;
-	if (api == 'flickr') {
-	    defaultParams = {
-		sort: 'date-posted-desc',
-		page: '1',
-		per_page: '100',
-		text: 'autumn',
-		format: 'json'
-	    };
-	} else if (api == 'youtube') {
-	    defaultParams = {
-		part: 'snippet',
-		safeSearch: 'moderate',
-		maxResults: 50,
-		type: 'video',
-		videoEmbeddable: true,
-		q: 'never gonna give you up'
-	    }
-	} else if (api == 'github') {
-	    defaultParams = {
-		q: 'language:javascript',
-		order: 'desc',
-		sort: 'stars',
-		per_page: 100,
-		page: 1
-	    }
-	} else if (api == 'tumblr') {
-	    defaultParams = {
-		tag: 'doge',
-		filter: 'text'
-	    }
-	} else if (api == 'reddit') {
-	    defaultParams = {
-		limit: 100
-	    }
-	}
-	
-	// Object containing AJAX request parameters
-	// Combine default parameters with given parameters
-	var params = $.extend(defaultParams, settings.extraParams);
-
-	var ajaxSettings;
-	
-	ajaxSettings = {
+	var ajaxSettings = {
 	    url: settings.endpoint,
 	    type: 'GET',
-	    data: params,
-	    dataType: 'jsonp'
+	    data: settings.params || {},
+	    dataType: 'jsonp',
+	    success: function(response) {
+		children = followKeyPath(response, settings.keyPath);
+		if (!(children instanceof Array)) {
+		    throw 'Invalid keypath';
+		}
+
+		nodeBank = deposit(nodeBank, children);
+		paginate(settings.paginate, children);
+	    }
 	};
-
-	// Incorporate custom ajax settings depending on the api
-	if (api == 'flickr') {
-	    ajaxSettings.jsonpCallback = 'jsonFlickrApi';
-	    ajaxSettings.success = function(response) {
-		try {
-		    children = findArray(response, settings.keyPath);
-		} catch(e) {
-		    console.error(e);
-		}
-
-		// nodeBank = nodeBank.concat($.map(children, function(child) {
-		//     return $('<div>').addClass('feed').html(template(child));
-		// }));
-		nodeBank = deposit(nodeBank, children);
-
-		params.page++;
-	    };    
-	} else if (api == 'youtube') {
-	    ajaxSettings.success = function(response) {
-		try {
-		    children = findArray(response, settings.keyPath);
-		} catch(e) {
-		    console.error(e);
-		}
-
-		nodeBank = deposit(nodeBank, children);
-		
-		ajaxSettings.data.pageToken = response.nextPageToken;
-	    };
-	} else if (api == 'github') {
-	    ajaxSettings.success = function(response) {
-		try {
-		    children = findArray(response, settings.keyPath);
-		} catch(e) {
-		    console.error(e);
-		}
-
-		nodeBank = deposit(nodeBank, children);
-
-		ajaxSettings.data.page++;
-	    }
-	} else if (api == 'tumblr') {
-	    ajaxSettings.success = function(response) {
-		try {
-		    children = findArray(response, settings.keypath);
-		} catch(e) {
-		    console.error(e);
-		}
-
-		nodeBank = deposit(nodeBank, children);
-
-		ajaxSettings.data.before = response.response[19].timestamp;
-	    }
-	} else if (api == 'reddit') {
-	    ajaxSettings.jsonp = 'jsonp',
-	    ajaxSettings.success = function(response) {
-		try {
-		    children = findArray(response, settings.keypath);
-		} catch(e) {
-		    console.error(e);
-		}
-
-		nodeBank = deposit(nodeBank, children);
-		ajaxSettings.data.after = children[children.length - 1].data.name;
-	    }
+	if (settings.jsonpCallback) {
+	    ajaxSettings.jsonpCallback = settings.jsonpCallback;
+	}
+	if (settings.jsonp) {
+	    ajaxSettings.jsonp = settings.jsonp;
 	}
 	
-	var nodeBank = [];
-
+	
 	$target = this;
-	
-	function findArray(hash, keyPath) {
-	    keys = settings.keyPath.split('.');
-	    children = hash;
-	    for (var i = 0; i < keys.length; i++) {
-		children = children[keys[i]];
-	    }
-	    if (!(children instanceof Array)) {
-		throw 'Object at specified keyPath is not an array.'
-	    }
-	    return children;
-	}
 
 	var ajaxActive = false;
 	
@@ -224,7 +178,6 @@ var responseContainer;
 	function loadMoreNodes(deferred) {
 	    ajaxActive = true;
 	    $.ajax(ajaxSettings).done(function() {
-		console.log(nodeBank.length, numNodes);
 		if (nodeBank.length < numNodes) {
 		    loadMoreNodes(deferred);
 		} else {
@@ -277,7 +230,6 @@ var responseContainer;
 		$target.prepend(nodeBank.slice(newBegin, newBegin - difference));
 	    }
 	    begin = newBegin;
-	    console.log(begin);
 	}
 	
 	var lastScroll = 0;
@@ -288,98 +240,95 @@ var responseContainer;
 
 $(function() {
     function populate(api) {
-	$('#container').empty();
-	$(window).off();
-	if (api === 'github') {
+    	$('#container').empty();
+    	$(window).off();
+    	if (api === 'github') {
 	    $('#container').gluttony({
-	    	endpoint: 'https://api.github.com/search/repositories',
-	    	keyPath: 'data.items',
-	    	extraParams: {
-	    	    q: 'language:javascript',
-	    	    per_page: 100,
-	    	    sort: 'stars'	    
-	    	}
+    		endpoint: 'https://api.github.com/search/repositories',
+    		keyPath: 'data.items',
+    		params: {
+    		    q: 'language:javascript',
+    		    per_page: 100,
+    		    sort: 'stars'	    
+    		},
+		paginate: 'page'
 	    }, function(child) {
-	    	var html = '';
-	    	html += '<h2><a target="_blank" href="' + child.html_url + '">' + child.owner.login + '/' + child.name + '</a></h2>';
-	    	html += '<p>' + child.description + '</p>';
-	    	html += '<p class="subtitle"><span class="octicon octicon-star"></span> ' + child.stargazers_count + ' <span class="octicon octicon-repo-forked"></span> ' + child.forks + '</p>';
-	    	html += '<img src="' + child.owner.avatar_url + '">';
-	    	return html;
+    		var html = '';
+    		html += '<h2><a target="_blank" href="' + child.html_url + '">' + child.owner.login + '/' + child.name + '</a></h2>';
+    		html += '<p>' + child.description + '</p>';
+    		html += '<p class="subtitle"><span class="octicon octicon-star"></span> ' + child.stargazers_count + ' <span class="octicon octicon-repo-forked"></span> ' + child.forks + '</p>';
+    		html += '<img src="' + child.owner.avatar_url + '">';
+    		return html;
 	    });	    
-	} else if (api === 'youtube') {
+    	} else if (api === 'flickr') {
 	    $('#container').gluttony({
-	    	endpoint: 'https://www.googleapis.com/youtube/v3/search',
-	    	keyPath: 'items',
-	    	extraParams: {
-	    	    q: 'pokemon',
-	    	    key: 'AIzaSyCRyUttQgorLXnBJq167KI2eze8L3P70xU',
-	    	    order: 'date'
-	    	}
+    		endpoint: 'https://api.flickr.com/services/rest/?method=flickr.photos.search',
+    		keyPath: 'photos.photo',
+    		params: {
+    		    text: 'autumn',
+    		    api_key: 'c89ceff941eb0fc822a1b2e61470522b',
+		    format: 'json',
+		    per_page: '100'
+    		},
+		paginate: 'page',
+		jsonpCallback: 'jsonFlickrApi'
 	    }, function(child) {
-	    	var html = '';
-	    	html += '<h2>' + child.snippet.title + '</h2>';
-	    	html += '<iframe width="420" height="315" src="http://www.youtube.com/embed/' + child.id.videoId + '" frameborder="0" allowfullscreen></iframe>';
-	    	return html;
+    		var html = '';
+    		if (child.title) {
+    		    html += '<h2>' + child.title + '</h2>';
+    		}
+    		html += '<img src="https://farm' + child.farm + '.staticflickr.com/' + child.server + '/' + child.id + '_' + child.secret + '.jpg">';
+    		return html;
 	    });	    
-	} else if (api === 'flickr') {
+
+    	} else if (api === 'tumblr') {
 	    $('#container').gluttony({
-		endpoint: 'https://api.flickr.com/services/rest/?method=flickr.photos.search',
-		keyPath: 'photos.photo',
-	    	extraParams: {
-	    	    text: 'autumn',
-	    	    api_key: 'c89ceff941eb0fc822a1b2e61470522b'
-	    	}
+    		endpoint: 'http://api.tumblr.com/v2/tagged',
+    		keyPath: 'response',
+    		paginate: {before: 'timestamp'},
+    		params: {
+    		    api_key: 'fuiKNFp9vQFvjLNvx4sUwti4Yb5yGutBN4Xh10LXZhhRKjWlV4',
+    		    tag: 'doge'		    
+    		}
 	    }, function(child) {
-	    	var html = '';
-		if (child.title) {
-	    	    html += '<h2>' + child.title + '</h2>';
-		}
-	    	html += '<img src="https://farm' + child.farm + '.staticflickr.com/' + child.server + '/' + child.id + '_' + child.secret + '.jpg">';
-	    	return html;
-	    });	    
-	} else if (api === 'tumblr') {
-	    $('#container').gluttony({
-		endpoint: 'http://api.tumblr.com/v2/tagged',
-		keyPath: 'response',
-		extraParams: {
-		    api_key: 'fuiKNFp9vQFvjLNvx4sUwti4Yb5yGutBN4Xh10LXZhhRKjWlV4',
-		    tag: 'doge'		    
-		}
-	    }, function(child) {
-		if (!child.photos) {
-		    return;
-		}
-		var html = '';
+    		if (!child.photos) {
+    		    return;
+    		}
+    		var html = '';
 		
-		html += '<h2><a target="_blank" href="' + child.post_url + '">' + child.blog_name + '</a></h2>';
-		if (child.caption) {
-		    html += '<p>' + child.caption + '</p>';
-		}
+    		html += '<h2><a target="_blank" href="' + child.post_url + '">' + child.blog_name + '</a></h2>';
+    		if (child.caption) {
+    		    html += '<p>' + child.caption + '</p>';
+    		}
 
-		html += '<img src="' + child.photos[0].original_size.url + '">';
-		return html;
-	    });
-	} else if (api === 'reddit') {
+    		html += '<img src="' + child.photos[0].original_size.url + '">';
+    		return html;
+	    }); 
+    	} else if (api === 'reddit') {
 	    $('#container').gluttony({
-		endpoint: 'http://www.reddit.com/r/aww.json',
-		keyPath: 'data.children',
+    		endpoint: 'http://www.reddit.com/r/aww.json',
+    		keyPath: 'data.children',
+    		paginate: {after: 'data.name'},
+    		jsonp: 'jsonp',
+    		params: {
+    		    limit: 100
+    		}
 	    }, function(child) {
-		if (!/\.(jpg|gif|png)$/.test(child.data.url)) {
-		    return;
-		}
-		var html = '';
+    		if (!/\.(jpg|gif|png)$/.test(child.data.url)) {
+    		    return;
+    		}
+    		var html = '';
 
-		html += '<h2><a target="_blank" href="' + child.data.url + '">' + child.data.title + '</a></h2>';
-		html += '<p> Submitted by ' + child.data.author + '</p>';
-		html += '<img src="' + child.data.url + '">';
-		return html;
+    		html += '<h2><a target="_blank" href="' + child.data.url + '">' + child.data.title + '</a></h2>';
+    		html += '<p> Submitted by ' + child.data.author + '</p>';
+    		html += '<img src="' + child.data.url + '">';
+    		return html;
 	    });
-	}
+    	}
     }
     var $select = $('select');
     populate($select.val());
     $select.on('change', function() {
-	populate($(this).val());
-    });
+    	populate($(this).val());
+    });    
 });
