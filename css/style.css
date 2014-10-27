@@ -1,0 +1,86 @@
+/* line 1, /Users/frankwang/src/gluttony/source/css/style.scss */
+* {
+  box-sizing: border-box; }
+
+/* line 5, /Users/frankwang/src/gluttony/source/css/style.scss */
+html {
+  font-size: 62.5%; }
+
+/* line 9, /Users/frankwang/src/gluttony/source/css/style.scss */
+body {
+  font-family: "Open Sans", sans-serif;
+  font-size: 1.6rem; }
+
+/* line 14, /Users/frankwang/src/gluttony/source/css/style.scss */
+img {
+  max-width: 100%; }
+
+/* line 18, /Users/frankwang/src/gluttony/source/css/style.scss */
+a {
+  color: #888;
+  text-decoration: none; }
+
+/* line 23, /Users/frankwang/src/gluttony/source/css/style.scss */
+a:hover {
+  color: #f00; }
+
+/* line 27, /Users/frankwang/src/gluttony/source/css/style.scss */
+#container {
+  width: 95%;
+  margin: 0 auto;
+  max-width: 600px; }
+
+/* line 34, /Users/frankwang/src/gluttony/source/css/style.scss */
+.feed img {
+  width: 100%; }
+
+/* Header styles */
+/* line 40, /Users/frankwang/src/gluttony/source/css/style.scss */
+header {
+  text-align: center;
+  margin: 0 auto 100px auto;
+  width: 95%;
+  max-width: 600px; }
+
+/* line 47, /Users/frankwang/src/gluttony/source/css/style.scss */
+h1 {
+  font-family: 'Permanent Marker';
+  font-size: 7rem;
+  color: #f00; }
+
+/* line 53, /Users/frankwang/src/gluttony/source/css/style.scss */
+label {
+  display: block;
+  margin-bottom: 1em;
+  color: #888; }
+
+/* line 59, /Users/frankwang/src/gluttony/source/css/style.scss */
+select {
+  background-color: #f00;
+  width: 180px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  height: 34px;
+  color: #fff; }
+
+/* Feed styles */
+/* line 69, /Users/frankwang/src/gluttony/source/css/style.scss */
+.feed {
+  padding-bottom: 100px;
+  margin-bottom: 100px;
+  text-align: center;
+  border-bottom: 1px solid #ccc; }
+
+/* line 76, /Users/frankwang/src/gluttony/source/css/style.scss */
+h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem; }
+
+/* line 81, /Users/frankwang/src/gluttony/source/css/style.scss */
+.subtitle {
+  margin-top: 0; }
+
+/* GitHub styles */
+/* line 86, /Users/frankwang/src/gluttony/source/css/style.scss */
+.octicon-repo-forked {
+  margin-left: 1em; }
