@@ -1,5 +1,6 @@
 # Gluttony: Infinite Feed Plugin
 
+[Live Demo](http://projectfrank.github.io/gluttony/)
 ## Getting Started
 
 1. Create an empty container in your HTML document.
