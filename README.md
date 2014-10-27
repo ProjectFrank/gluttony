@@ -19,7 +19,7 @@ For example, if you were working with the [reddit API](http://www.reddit.com/.js
 
 Example:
 
-```
+``` js
 function(child) {
   if (!/\.(jpg|gif|png)$/.test(child.data.url)) {
     return;
@@ -47,7 +47,7 @@ Options must be an object and should be passed in as the first argument. The fol
 ## Usage Examples
 For reddit:
 
-```
+``` js
 $('#container').gluttony({
     endpoint: 'http://www.reddit.com/r/aww.json',
     keyPath: 'data.children',
@@ -70,7 +70,7 @@ $('#container').gluttony({
 
 For Flickr:
 
-```
+``` js
 $('#container').gluttony({
 	endpoint: 'https://api.flickr.com/services/rest/?method=flickr.photos.search',
 	keyPath: 'photos.photo',
@@ -94,7 +94,7 @@ $('#container').gluttony({
 
 For GitHub: 
 
-```
+``` js
 $('#container').gluttony({
     endpoint: 'https://api.github.com/search/repositories',
     keyPath: 'data.items',
@@ -116,7 +116,7 @@ $('#container').gluttony({
 
 For Tumblr:
 
-```
+``` js
 $('#container').gluttony({
     endpoint: 'http://api.tumblr.com/v2/tagged',
     keyPath: 'response',
