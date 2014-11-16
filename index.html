@@ -24,18 +24,170 @@
         <![endif]-->
 
         <!-- Add your site or application content here -->
-<header>
-  <h1>Gluttony</h1>
-  <!-- <label for="api">Pick an API:</label> -->
-  <select name="api" id="api">
-    <option value="" disabled selected>Select API</option>
-    <option value="github">GitHub</option>
-    <option value="flickr">Flickr</option>
-    <option value="tumblr">Tumblr</option>
-    <option value="reddit">Reddit</option>
-  </select>
-</header>
-<div id="container"></div>
+<nav>
+  <ul>
+    <li><a href="https://github.com/ProjectFrank/gluttony" target="_blank">Github</a></li>
+    <li><a href="#" id="doc-toggle">Show Documentation</a></li>
+  </ul>
+</nav>
+<div class="demo">
+  <header>
+    <h1>Gluttony</h1>
+    <label for="api">Select an API for infinitely scrolling awesomeness!</label>
+    <select name="api" id="api">
+      <option value="" disabled selected>Pick an API</option>
+      <option value="github">GitHub</option>
+      <option value="flickr">Flickr</option>
+      <option value="tumblr">Tumblr</option>
+      <option value="reddit">Reddit</option>
+    </select>
+  </header>
+  <div id="container"></div>
+</div>
+<div class="documentation">
+  <header>
+    <h2>Gluttony: An Infinite Scrolling Plugin</h2>
+    <a href="https://github.com/ProjectFrank/gluttony" target="_blank">GitHub Page</a>
+    <p>Create an infinite scrolling feed using content from an API endpoint of your choice!</p>
+  </header>
+  <section class="get-started">
+    <h2>Getting Started</h2>
+    <ol>
+      <li>Get jQuery <a href="http://jquery.com/download/" download>here</a>.</li>
+      <li>Download gluttony <a download="" href="js/gluttony.js">here</a>.</li>
+      <li>Create an empty container for your feed. (e.g. <code>&lt;div id=&quot;container&quot;&gt;&lt;/div&gt;</code>)</li>
+      <li>Generate the feed using <code>$('#container').gluttony()</code>. Be sure to refer to the section below for required options and arguments.
+    </ol>
+  </section>
+  <section class="arguments">
+    <h2>Arguments</h2>
+    <p>The <code>gluttony</code> method requires two arguments.</p>
+    <p>
+      The first argument should be an object containing options for the feed which will be explained in the following section.
+    </p>
+    <p>
+      The second argument should be a function that returns an html string, array of html strings, element, array of elements, jQuery object, or array of jQuery objects representing the contents of each element in the feed. The function can take one argument which should represent an element from the main array inside the returned JSON. If your function returns a falsy value, the array element will omitted from the feed.
+    </p>
+    <p>
+      For example, if you were working with the <a href="http://www.reddit.com/.json" target="_blank">reddit API</a>, you could refer to a post's title as <code>child.data.title</code>, assuming you named your function parameter <code>child</code>.
+    </p>
+    <p>Example:</p>
+    <code class="code-block">
+      function(child) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if (!/\.(jpg|gif|png)$/<wbr>.test(child.data.url)) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;var html = '';<br>
+
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;h2&gt;&lt;a target=&quot;_blank&quot; href=&quot;' + child.data.url + '&quot;&gt;' + child.data.title + '&lt;/a&gt;&lt;/h2&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;p&gt; Submitted by ' + child.data.author + '&lt;/p&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;img src=&quot;' + child.data.url + '&quot;&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return html;<br>
+      }
+    </code>
+  </section>
+  <section class="options">
+    <p>Options must be an object and should be passed in as the first argument. The following are keys that can be used in such an object:</p>
+    <ul>
+      <li><code>endpoint</code>: REQUIRED This should be a string of your endpoint's URL (e.g. <a href="http://reddit.com/.json"><code>http://reddit.com/.json</code></a>)</li>
+      <li><code>keyPath</code>: REQUIRED This should be a string of property names separated by a '.' that will help the plugin locate the array of interest in the JSON file returned from your API. For example, if were were working with a <a href="http://reddit.com/.json" target="_blank">JSON file from the reddit API</a>, we would be interested in the value <code>children</code> array inside the <code>data</code> object. The <code>keyPath</code> in this case would be <code>data.children</code>.</li>
+      <li><code>paginate</code>: REQUIRED Refer to the documentation for your API. For APIs that paginate using something like <code>page=1</code>, you can set the value to the name of the pagination parameter (e.g. <code>page</code>) that should be incremented with each AJAX call. Other APIs may paginate by updating a parameter's value to be equal to one of the properties of the last element of the array of interest. For example, pagination on reddit is done by setting the <code>after</code> parameter to the value of the <code>name</code> property of the object referenced by the <code>data</code> property of the last element in the array of interest. In this case, the paginate property should reference an object containing a single key value pair. The key should be the name of the parameter that should be updated to paginate each AJAX call. The value should be a list of key path separated by <code>.</code> indicating the location within the last array element of the value that the pagination parameter should be updated to. In the case of reddit, the value of <code>paginate</code> would be set to <code>{after: 'data.name'}</code>.</li>
+      <li><code>params</code>: USUALLY REQUIRED This should be an object containing key value pairs that represent parameters and their values. This is similar to the object that would be assigned to the <code>data</code> property of the <code>settings</code> object used with the <a href="http://api.jquery.com/jquery.ajax/" target="_blank"><code>jQuery.ajax()</code></a> method. Usage of this option will vary depending on the API being used. In order to reduce the number of AJAX calls made, it is advisable to set the parameter indicating the number of results per page to the maximum value allowed by the API.</li>
+      <li><code>numNodes</code>: OPTIONAL This should be set to an integer representing the number of posts the feed should display at any given moment. If this is omitted or falsy, the default value of 10 will be used.</li>
+      <li><code>jsonp</code>: OPTIONAL Similar to <code>jsonp</code> property of the <code>settings</code> object parameter used by <a href="http://api.jquery.com/jquery.ajax/" target="_blank"><code>jQuery.ajax()</code></a>. This should be a string indicating the parameter name used to specify to the API the name of the callback function that should be used to wrap the produced JSON. If unset, the default value of <code>callback</code> will be used. This option is necessary for APIs such as reddit where the name of the parameter used to specify the name of the callback function is <code>jsonp</code> as shown in the following request URL: <code>http://reddit.com/.json?jsonp=functionName</code></li>
+      <li><code>jsonpCallback</code>: OPTIONAL Similar to the <code>jsonpCallback</code> property of the <code>settings</code> object parameter used by <a href="http://api.jquery.com/jquery.ajax/"><code>jQuery.ajax()</code></a>. This should be a string indicating the name of the callback function to be used. This option is necessary for APIs such as Flickr where the callback name is <code>jsonFlickrApi</code> and there is no way to change it.</li>
+    </ul>
+  </section>
+  <section class="examples">
+    <p>For reddit:</p>
+    <code class="code-block">
+      $('#container').gluttony({<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;endpoint: 'http://www.reddit.com/<wbr>r/aww.json',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;keyPath: 'data.children',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;paginate: {after: 'data.name'},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;jsonp: 'jsonp',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;params: {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;limit: 100<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      }, function(child) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if (!/\.(jpg|gif|png)$/<wbr>.test(child.data.url)) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;var html = '';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;h2&gt;&lt;a target=&quot;_blank&quot; href=&quot;' + child.data.url + '&quot;&gt;' + child.data.title + '&lt;/a&gt;&lt;/h2&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;p&gt; Submitted by ' + child.data.author + '&lt;/p&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;img src=&quot;' + child.data.url + '&quot;&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return html;<br>
+      });
+    </code>
+    <p>For Flickr:</p>
+    <code class="code-block">
+      $('#container').gluttony({<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;endpoint: 'https://api.flickr.com/<wbr>services/rest/?method=flickr.photos<wbr>.search',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;keyPath: 'photos.photo',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;params: {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;text: 'autumn',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;api_key: 'some key',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;format: 'json',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;per_page: '100'<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;paginate: 'page',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;jsonpCallback: 'jsonFlickrApi'<br>
+      }, function(child) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;var html = '';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if (child.title) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;h2&gt;' + child.title + '&lt;/h2&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;img src=&quot;https://farm' + child.farm + '.staticflickr.com/' + child.server + '/' + child.id + '_' + child.secret + '.jpg&quot;&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return html;<br>
+      });     
+    </code>
+    <p>For GitHub:</p>
+    <code class="code-block">
+      $('#container').gluttony({<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;endpoint: 'https://api.github.com/<wbr>search/<wbr>repositories',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;keyPath: 'data.items',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;params: {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;q: 'language:javascript',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;per_page: 100,<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sort: 'stars'<br>  
+      &nbsp;&nbsp;&nbsp;&nbsp;},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;paginate: 'page'<br>
+      }, function(child) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;var html = '';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;h2&gt;&lt;a target=&quot;_blank&quot; href=&quot;' + child.html_url + '&quot;&gt;' + child.owner.login + '/' + child.name + '&lt;/a&gt;&lt;/h2&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;p&gt;' + child.description + '&lt;/p&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;p class=&quot;subtitle&quot;&gt;&lt;span class=&quot;octicon octicon-star&quot;&gt;&lt;/span&gt; ' + child.stargazers_count + ' &lt;span class=&quot;octicon octicon-repo-forked&quot;&gt;&lt;/span&gt; ' + child.forks + '&lt;/p&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;img src=&quot;' + child.owner.avatar_url + '&quot;&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;return html;<br>
+      });
+    </code>
+    <p>For Tumblr:</p>
+    <code class="code-block">
+      $('#container').gluttony({<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;endpoint: 'http://api.tumblr.com/<wbr>v2/<wbr>tagged',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;keyPath: 'response',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;paginate: {before: 'timestamp'},<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;params: {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;api_key: 'fuiKNFp9vQFvjL<wbr>Nvx4sUwti4Yb5y<wbr>GutBN4Xh10LXZhhRKjWlV4',<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tag: 'doge'<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      }, function(child) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if (!child.photos) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return;<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;var html = '';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;h2&gt;&lt;a target=&quot;_blank&quot; href=&quot;' + child.post_url + '&quot;&gt;' + child.blog_name + '&lt;/a&gt;&lt;/h2&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;if (child.caption) {<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;p&gt;' + child.caption + '&lt;/p&gt;';<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;&nbsp;html += '&lt;img src=&quot;' + child.photos[0].<wbr>original_size.url + '&quot;&gt;';
+      &nbsp;&nbsp;&nbsp;&nbsp;return html;<br>
+      });
+    </code>
+  </Section>
+</div>
 
 
 

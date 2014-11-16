@@ -25,36 +25,96 @@ a:hover {
   color: #f00; }
 
 /* line 27, /Users/frankwang/src/gluttony/source/css/style.scss */
+select {
+  font-family: "Open Sans", sans-serif; }
+
+/* line 31, /Users/frankwang/src/gluttony/source/css/style.scss */
+nav {
+  position: fixed;
+  display: none;
+  top: 0;
+  left: 0;
+  height: 56px;
+  width: 100%;
+  background: #000;
+  z-index: 1000; }
+  /* line 40, /Users/frankwang/src/gluttony/source/css/style.scss */
+  nav ul {
+    margin: 0;
+    padding: 0;
+    text-align: right; }
+  /* line 45, /Users/frankwang/src/gluttony/source/css/style.scss */
+  nav li {
+    display: inline-block;
+    padding: 2rem 1em;
+    line-height: 1; }
+  /* line 50, /Users/frankwang/src/gluttony/source/css/style.scss */
+  nav a {
+    color: #fff; }
+
+/* line 55, /Users/frankwang/src/gluttony/source/css/style.scss */
+.demo {
+  width: 50%; }
+
+/* line 59, /Users/frankwang/src/gluttony/source/css/style.scss */
+.documentation {
+  position: fixed;
+  width: 50vw;
+  height: 100vh;
+  padding: 0 3rem;
+  top: 0;
+  right: 0;
+  background: #e8e8e8;
+  overflow: scroll; }
+  /* line 68, /Users/frankwang/src/gluttony/source/css/style.scss */
+  .documentation header {
+    text-align: left;
+    margin: 0;
+    width: auto; }
+
+/* line 75, /Users/frankwang/src/gluttony/source/css/style.scss */
+code {
+  background: #ccc; }
+
+/* line 79, /Users/frankwang/src/gluttony/source/css/style.scss */
+.code-block {
+  display: block;
+  padding: 8%;
+  background: #fff; }
+
+/* line 85, /Users/frankwang/src/gluttony/source/css/style.scss */
 #container {
   width: 95%;
   margin: 0 auto;
   max-width: 600px; }
 
-/* line 34, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 92, /Users/frankwang/src/gluttony/source/css/style.scss */
 .feed img {
   width: 100%; }
 
 /* Header styles */
-/* line 40, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 98, /Users/frankwang/src/gluttony/source/css/style.scss */
 header {
   text-align: center;
   margin: 0 auto 100px auto;
   width: 95%;
   max-width: 600px; }
 
-/* line 47, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 105, /Users/frankwang/src/gluttony/source/css/style.scss */
 h1 {
   font-family: 'Permanent Marker';
   font-size: 7rem;
-  color: #f00; }
+  color: #f00;
+  line-height: 1;
+  margin: 4.7rem 0; }
 
-/* line 53, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 113, /Users/frankwang/src/gluttony/source/css/style.scss */
 label {
   display: block;
-  margin-bottom: 1em;
+  margin: 4.7rem 0;
   color: #888; }
 
-/* line 59, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 119, /Users/frankwang/src/gluttony/source/css/style.scss */
 select {
   background-color: #f00;
   width: 180px;
@@ -64,23 +124,49 @@ select {
   color: #fff; }
 
 /* Feed styles */
-/* line 69, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 129, /Users/frankwang/src/gluttony/source/css/style.scss */
 .feed {
   padding-bottom: 100px;
   margin-bottom: 100px;
   text-align: center;
   border-bottom: 1px solid #ccc; }
 
-/* line 76, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 136, /Users/frankwang/src/gluttony/source/css/style.scss */
 h2 {
   font-size: 3rem;
   margin-bottom: 1rem; }
 
-/* line 81, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 141, /Users/frankwang/src/gluttony/source/css/style.scss */
 .subtitle {
   margin-top: 0; }
 
 /* GitHub styles */
-/* line 86, /Users/frankwang/src/gluttony/source/css/style.scss */
+/* line 146, /Users/frankwang/src/gluttony/source/css/style.scss */
 .octicon-repo-forked {
   margin-left: 1em; }
+
+@media (max-width: 1050px) {
+  /* line 151, /Users/frankwang/src/gluttony/source/css/style.scss */
+  nav {
+    display: block; }
+
+  /* line 154, /Users/frankwang/src/gluttony/source/css/style.scss */
+  .demo {
+    width: 100%; }
+
+  /* line 157, /Users/frankwang/src/gluttony/source/css/style.scss */
+  .documentation, .demo {
+    padding-top: 56px; }
+
+  /* line 160, /Users/frankwang/src/gluttony/source/css/style.scss */
+  .documentation {
+    width: 0;
+    max-width: 100%;
+    padding: 56px 0 0 0;
+    -webkit-transition: width 1s ease-in-out, padding 1s ease-in-out;
+    transition: width 1s ease-in-out, padding 1s ease-in-out; }
+
+  /* line 166, /Users/frankwang/src/gluttony/source/css/style.scss */
+  .documentation.show {
+    width: 525px;
+    padding: 56px 3rem 0 3rem; } }
